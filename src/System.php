@@ -101,9 +101,12 @@ class System
     }
 
     public function storeProcessed() {
-        /** @var Object $object */
-        foreach ($this->getObjects() as $object) {
-            $object->setProcessed(true);
+
+        foreach ($this->getObjects() as $objects) {
+            /** @var Object $object */
+            foreach($objects as $object) {
+                $object->setProcessed(true);
+            }
         }
 
         return $this->getCollection()->insert(
