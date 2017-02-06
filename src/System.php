@@ -22,7 +22,11 @@ class System
      */
     public function getRequest() {
         $request = array(
-            'Header' => array(),
+            'Header' => array(
+                'MessageNo' => 1,
+                'ReceivedNo' => 1,
+                'Sign' => false,
+            ),
             'Body' => array()
         );
 
@@ -35,6 +39,8 @@ class System
                 $request['Body'][] = $object->toRequest();
             }
         }
+
+        $request['Header']['Sign'] = self::getSign(json_encode($request['Body']));
 
         return $request;
     }
@@ -114,6 +120,12 @@ class System
     public function getCollection()
     {
         return $this->collection;
+    }
+
+    public static function getSign($body) {
+        global $sugar_config;
+        $sign = md5($sugar_config['1c_config']['api_key'] . $body . $sugar_config['1c_config']['api_salt']);
+        return $sign;
     }
 
 }
