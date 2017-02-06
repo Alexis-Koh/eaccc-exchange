@@ -62,7 +62,10 @@ class System
      */
     public function setObject(Object $object)
     {
-        $this->objects[get_class($object)] = $object;
+        if(empty($this->objects[get_class($object)])) {
+            $this->objects[get_class($object)] = array();
+        }
+        $this->objects[get_class($object)][] = $object;
         return $this;
     }
 

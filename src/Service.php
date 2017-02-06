@@ -11,7 +11,9 @@ use Exchange\Config;
 class Service
 {
 
-    protected static  $systems = array(
+    protected static $systems = array();
+
+    protected static  $availableSystems = array(
         'CashBox' => 'Exchange\Systems\CashBox',
         'YourHumanResourceAdvisor' => 'Exchange\Systems\YourHumanResourceAdvisor',
     );
@@ -21,10 +23,15 @@ class Service
      * @return bool|System
      */
     public static function system($bean) {
-        if(empty(self::$systems[$bean->system_c]) || !class_exists(self::$systems[$bean->system_c])) {
+        if(empty(self::$availableSystems[$bean->system_c]) || !class_exists(self::$availableSystems[$bean->system_c])) {
             return false;
         }
-        return new self::$systems[$bean->system_c]();
+
+        if(empty(self::$systems[$bean->system_c])) {
+            self::$systems[$bean->system_c] = new self::$availableSystems[$bean->system_c]();
+        }
+
+        return self::$systems[$bean->system_c];
     }
 
 }
