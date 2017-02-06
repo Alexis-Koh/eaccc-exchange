@@ -10,6 +10,9 @@ use Exchange\Object;
 class System
 {
 
+    /** @var  \MongoCollection $collection */
+    protected $collection;
+
     protected $objects = array();
 
     protected $config;
@@ -22,6 +25,12 @@ class System
             'Header' => array(),
             'Body' => array()
         );
+
+        $lastMessage = $this->getCollection()->find()->sort(array('Header.MessageNo' => '-1'))->limit(1)->current();
+        if(empty($lastMessage)) {
+            $MessageNo = 1;
+        }
+        $MessageNo = empty($lastMessage) ? 1 : $lastMessage['Header']['MessageNo'] + 1;
 
         foreach($this->getObjects() as $key => $objects) {
             foreach($objects as $object_key => $object) {
@@ -83,6 +92,30 @@ class System
     {
         $this->config = $config;
         return $this;
+    }
+
+    public function storeProcessed() {
+        $this->getCollection()->insert(
+            $this->getRequest()
+        );
+    }
+
+    /**
+     * @param \MongoCollection $collection
+     * @return System
+     */
+    public function setCollection($collection)
+    {
+        $this->collection = $collection;
+        return $this;
+    }
+
+    /**
+     * @return \MongoCollection
+     */
+    public function getCollection()
+    {
+        return $this->collection;
     }
 
 }
