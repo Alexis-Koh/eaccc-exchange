@@ -30,7 +30,7 @@ class System
             'Body' => array()
         );
 
-        $lastMessage = $this->getCollection()->find()->sort(array('Header.MessageNo' => '-1'))->limit(1)->current();
+        $lastMessage = $this->getCollection()->find()->sort(array("Header.MessageNo" => -1))->limit(1)->next();
 
         $request['Header']['MessageNo'] = empty($lastMessage) ? 1 : $lastMessage['Header']['MessageNo'] + 1;
 
@@ -99,7 +99,7 @@ class System
     }
 
     public function storeProcessed() {
-        $this->getCollection()->insert(
+        return $this->getCollection()->insert(
             $this->getRequest()
         );
     }
