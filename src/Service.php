@@ -34,4 +34,20 @@ class Service
         return self::$systems[$bean->system_c];
     }
 
+    /**
+     * @return array
+     */
+    public static function getSystems()
+    {
+        return self::$systems;
+    }
+
+    /**
+     * @param array $systems
+     */
+    protected static function setSystems($systems)
+    {
+        self::$systems = $systems;
+    }
+
 }

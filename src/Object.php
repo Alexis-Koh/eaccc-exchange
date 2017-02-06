@@ -12,6 +12,7 @@ class Object
 {
 
     protected $fields = array();
+    protected $type = 'Справочник.СтруктурныеЕдиницы';
 
     /**
      * @param array $fields
@@ -61,6 +62,17 @@ class Object
         foreach($this->getFields() as &$field) {
             $field->setValue($bean->{$field->getName()});
         }
+    }
+
+    public function toRequest() {
+        $request = array();
+        $request['Type'] = $this->type;
+
+        /** @var Field $field */
+        foreach($this->getFields() as $field) {
+            $request[$field->getExternalName()] = $field->getValue();
+        }
+        return $request;
     }
 
 }
