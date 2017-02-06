@@ -1,6 +1,4 @@
 <?php
-
-echo 'Systems';
 /**
  * User: M. Krivickiy
  */
