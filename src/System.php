@@ -17,6 +17,8 @@ class System
 
     protected $config;
 
+    protected $transport;
+
     /**
      * @return string
      */
@@ -126,6 +128,24 @@ class System
         global $sugar_config;
         $sign = md5($sugar_config['1c_config']['api_key'] . $body . $sugar_config['1c_config']['api_salt']);
         return $sign;
+    }
+
+    /**
+     * @param mixed $transport
+     * @return System
+     */
+    public function setTransport($transport)
+    {
+        $this->transport = $transport;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getTransport()
+    {
+        return $this->transport;
     }
 
 
