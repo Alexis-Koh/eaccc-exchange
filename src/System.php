@@ -148,5 +148,9 @@ class System
         return $this->transport;
     }
 
+    public function sent() {
+        return $this->getTransport()->call('Отправить', array('Данные' => json_encode($this->getRequest()), 'ExchangeSuiteCRM'));
+    }
+
 
 }
