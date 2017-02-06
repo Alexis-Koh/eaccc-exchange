@@ -29,7 +29,7 @@ class System
             }
         }
 
-        return json_encode($request);
+        return $request;
     }
 
     /**
