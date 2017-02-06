@@ -27,10 +27,8 @@ class System
         );
 
         $lastMessage = $this->getCollection()->find()->sort(array('Header.MessageNo' => '-1'))->limit(1)->current();
-        if(empty($lastMessage)) {
-            $MessageNo = 1;
-        }
-        $MessageNo = empty($lastMessage) ? 1 : $lastMessage['Header']['MessageNo'] + 1;
+
+        $request['Header']['MessageNo'] = empty($lastMessage) ? 1 : $lastMessage['Header']['MessageNo'] + 1;
 
         foreach($this->getObjects() as $key => $objects) {
             foreach($objects as $object_key => $object) {
