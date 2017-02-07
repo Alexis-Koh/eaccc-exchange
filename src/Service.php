@@ -14,7 +14,9 @@ class Service
 
     protected static $systems = array();
     /** @var  \MongoCollection $collection */
-    protected static $collection;
+    protected static $messageCollection;
+    /** @var  \MongoCollection $queueCollection */
+    protected static $queueCollection;
 
     protected static  $availableSystems = array(
         'CashBox' => 'Exchange\Systems\CashBox',
@@ -56,17 +58,33 @@ class Service
     /**
      * @return \MongoCollection
      */
-    public static function getCollection()
+    public static function getMessagesCollection()
     {
-        return self::$collection;
+        return self::$messageCollection;
     }
 
     /**
      * @param \MongoCollection $collection
      */
-    public static function setCollection($collection)
+    public static function setMessagesCollection($collection)
     {
-        self::$collection = $collection;
+        self::$messageCollection = $collection;
+    }
+
+    /**
+     * @return \MongoCollection
+     */
+    public static function getQueueCollection()
+    {
+        return self::$queueCollection;
+    }
+
+    /**
+     * @param \MongoCollection $collection
+     */
+    public static function setQueueCollection($collection)
+    {
+        self::$queueCollection = $collection;
     }
 
     public static function addObject($object) {
@@ -77,14 +95,27 @@ class Service
         return array_search(get_class($system), self::$availableSystems);
     }
 
-    public static function setReceived($messageNo) {
-        $received = self::getCollection()->findAndModify(array(
-            'request.Header.MessageNo' => (int)$messageNo
+    public static function setReceived($messageNo, $system = 'CashBox') {
+        $received = self::getMessagesCollection()->findAndModify(array(
+            'request.Header.MessageNo' => (int)$messageNo,
+            'system' => $system
         ), array(
             '$set' => array(
                 'received' => true
             )
         ));
+
+        if(!$received) {
+            return false;
+        }
+
+        foreach ($received['objects'] as $object) {
+            $receivedObject = self::getQueueCollection()->remove(
+                array(
+                    '_id' => $object
+                )
+            );
+        }
     }
 
 }
