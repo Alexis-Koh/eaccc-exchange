@@ -7,6 +7,7 @@
 namespace Exchange;
 
 use Exchange\Config;
+use Exchange\System;
 
 class Service
 {
@@ -70,6 +71,10 @@ class Service
 
     public static function addObject($object) {
         return self::getCollection()->insert($object);
+    }
+
+    public static function getSystem(System $system) {
+        return array_search(get_class($system), self::$availableSystems);
     }
 
 }

@@ -100,7 +100,11 @@ class Object
     public function setProcessed($isProcessed) {
         $this->getCollection()->update(
             array('_id' => $this->getMongoId()),
-            array('processed' => (bool)$isProcessed)
+            array(
+                '$set' => array(
+                    'processed' => (bool)$isProcessed
+                )
+            )
         );
     }
 
