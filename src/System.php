@@ -26,12 +26,7 @@ class System
      */
     public function getRequest() {
         $request = array(
-            'Header' => array(
-                'MessageNo' => 1,
-                'ReceivedNo' => 1,
-                'Sign' => false,
-            ),
-            'Body' => array()
+            'Header' => array()
         );
 
         $lastMessage = $this->getCollection()
@@ -42,6 +37,11 @@ class System
 
         $request['Header']['MessageNo'] = empty($lastMessage) ? 1 : $lastMessage['request']['Header']['MessageNo'] + 1;
         $request['Header']['ReceivedNo'] = $this->getLastReceivedNo();
+
+        if(count($this->getObjects()) > 0) {
+            $request['Body'] = array();
+        }
+
         foreach($this->getObjects() as $key => $objects) {
             foreach($objects as $object_key => $object) {
                 $request['Body'][] = $object->toRequest();
