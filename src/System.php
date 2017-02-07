@@ -48,7 +48,7 @@ class System
             }
         }
 
-        $request['Header']['Sign'] = self::getSign(json_encode($request['Body']));
+        $request['Header']['Sign'] = self::getSign(json_encode($request['Body'], JSON_UNESCAPED_UNICODE));
 
         return $request;
     }
