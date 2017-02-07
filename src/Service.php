@@ -79,7 +79,7 @@ class Service
 
     public static function setReceived($messageNo) {
         $received = self::getCollection()->findAndModify(array(
-            'Header.MessageNo' => (int)$messageNo
+            'request.Header.MessageNo' => (int)$messageNo
         ), array(
             '$set' => array(
                 'received' => true

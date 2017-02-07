@@ -12,7 +12,7 @@ class Object
 {
 
     protected $fields = array();
-    protected $type = 'Справочник.СтруктурныеЕдиницы';
+    protected $type;
     /** @var  \MongoId $mongoId */
     protected $mongoId;
     /** @var  \MongoCollection $collection */

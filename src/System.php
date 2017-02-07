@@ -105,17 +105,19 @@ class System
     }
 
     public function storeProcessed() {
-
+        $items = array();
         foreach ($this->getObjects() as $objects) {
             /** @var Object $object */
             foreach($objects as $object) {
                 $object->setProcessed(true);
+                $items[] = $object->getMongoId();
             }
         }
 
         return $this->getCollection()->insert(
             array(
                 'request' => $this->getRequest(),
+                'objects' => $items,
                 'received' => false,
                 'system' => Service::getSystem($this)
             )

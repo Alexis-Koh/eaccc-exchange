@@ -12,6 +12,8 @@ use Exchange\Systems\CashBox\Agencies\Name;
 
 class Agencies extends Object
 {
+    protected $type = 'Справочник.СтруктурныеЕдиницы';
+
     public function __construct()
     {
         $this->setField(new Id())
