@@ -50,7 +50,7 @@ class Service
     /**
      * @param array $systems
      */
-    protected static function setSystems($systems)
+    public static function setSystems($systems)
     {
         self::$systems = $systems;
     }
