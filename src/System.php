@@ -32,9 +32,13 @@ class System
             'Body' => array()
         );
 
-        $lastMessage = $this->getCollection()->find()->sort(array("Header.MessageNo" => -1))->limit(1)->next();
+        $lastMessage = $this->getCollection()
+            ->find(array('system' => Service::getSystem($this)))
+            ->sort(array("request.Header.MessageNo" => -1))
+            ->limit(1)
+            ->next();
 
-        $request['Header']['MessageNo'] = empty($lastMessage) ? 1 : $lastMessage['Header']['MessageNo'] + 1;
+        $request['Header']['MessageNo'] = empty($lastMessage) ? 1 : $lastMessage['request']['Header']['MessageNo'] + 1;
 
         foreach($this->getObjects() as $key => $objects) {
             foreach($objects as $object_key => $object) {
