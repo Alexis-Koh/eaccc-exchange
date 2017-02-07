@@ -26,7 +26,7 @@ class System
      */
     public function getRequest() {
         $request = array(
-            'Header' => array()
+            'Header' => new \stdClass()
         );
 
         $lastMessage = $this->getCollection()
@@ -35,8 +35,8 @@ class System
             ->limit(1)
             ->next();
 
-        $request['Header']['MessageNo'] = empty($lastMessage) ? 1 : $lastMessage['request']['Header']['MessageNo'] + 1;
-        $request['Header']['ReceivedNo'] = $this->getLastReceivedNo();
+        $request['Header']->MessageNo = empty($lastMessage) ? 1 : $lastMessage['request']['Header']['MessageNo'] + 1;
+        $request['Header']->ReceivedNo = $this->getLastReceivedNo();
 
         if(count($this->getObjects()) > 0) {
             $request['Body'] = array();
@@ -48,7 +48,7 @@ class System
             }
         }
 
-        $request['Header']['Sign'] = self::getSign(json_encode($request, JSON_UNESCAPED_UNICODE));
+        $request['Header']->Sign = self::getSign(json_encode($request, JSON_UNESCAPED_UNICODE));
 
         return $request;
     }
@@ -146,7 +146,6 @@ class System
 
     public static function getSign($body) {
         global $sugar_config;
-        $body = json_encode(json_decode($body));
         $sign = md5($sugar_config['1c_config']['api_key'] . $body . $sugar_config['1c_config']['api_salt']);
         return $sign;
     }
