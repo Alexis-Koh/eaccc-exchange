@@ -167,7 +167,7 @@ class System
     }
 
     public function sent() {
-        return $this->getTransport()->call('Отправить', array('Данные' => json_encode($this->getRequest()), 'ExchangeSuiteCRM'));
+        return $this->getTransport()->call('Отправить', array('Данные' => json_encode($this->getRequest(), JSON_UNESCAPED_UNICODE), 'ExchangeSuiteCRM'));
     }
 
 

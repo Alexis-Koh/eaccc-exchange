@@ -129,4 +129,14 @@ class Service
         return true;
     }
 
+    public static function getLastMessageNo($system = 'CashBox') {
+        $lastMessage = self::getMessagesCollection()
+            ->find(array('system' => $system))
+            ->sort(array("request.Header.MessageNo" => -1))
+            ->limit(1)
+            ->next();
+
+        return empty($lastMessage) ? 1 : $lastMessage['request']['Header']['MessageNo'];
+    }
+
 }
