@@ -1,142 +1,173 @@
 <?php
-
 /**
  * User: M. Krivickiy
  */
-
 namespace Exchange;
 
-use Exchange\Config;
-use Exchange\System;
+use Exchange\Systems\CashBox;
+use Exchange\Object;
 
-class Service
+class System
 {
 
-    protected static $systems = array();
     /** @var  \MongoCollection $collection */
-    protected static $messageCollection;
-    /** @var  \MongoCollection $queueCollection */
-    protected static $queueCollection;
+    protected $collection;
 
-    protected static  $availableSystems = array(
-        'CashBox' => 'Exchange\Systems\CashBox',
-        'YourHumanResourceAdvisor' => 'Exchange\Systems\YourHumanResourceAdvisor',
-    );
+    protected $objects = array();
+
+    protected $config;
+
+    protected $transport;
 
     /**
-     * @param \SugarBean $bean
-     * @return bool|System
+     * @return string
      */
-    public static function system($bean) {
-        if(empty(self::$availableSystems[$bean->system_c]) || !class_exists(self::$availableSystems[$bean->system_c])) {
-            return false;
+    public function getRequest() {
+        $request = array(
+            'Header' => array(
+                'MessageNo' => 1,
+                'ReceivedNo' => 1,
+                'Sign' => false,
+            ),
+            'Body' => array()
+        );
+
+        $lastMessage = $this->getCollection()
+            ->find(array('system' => Service::getSystem($this)))
+            ->sort(array("request.Header.MessageNo" => -1))
+            ->limit(1)
+            ->next();
+
+        $request['Header']['MessageNo'] = empty($lastMessage) ? 1 : $lastMessage['request']['Header']['MessageNo'] + 1;
+
+        foreach($this->getObjects() as $key => $objects) {
+            foreach($objects as $object_key => $object) {
+                $request['Body'][] = $object->toRequest();
+            }
         }
 
-        if(empty(self::$systems[$bean->system_c])) {
-            self::$systems[$bean->system_c] = new self::$availableSystems[$bean->system_c]();
-        }
+        $request['Header']['Sign'] = self::getSign(json_encode($request['Body']));
 
-        return self::$systems[$bean->system_c];
+        return $request;
+    }
+
+    /**
+     * @param array $objects
+     * @return System
+     */
+    public function setObjects($objects)
+    {
+        $this->objects = $objects;
+        return $this;
     }
 
     /**
      * @return array
      */
-    public static function getSystems()
+    public function getObjects()
     {
-        return self::$systems;
+        return $this->objects;
     }
 
+
     /**
-     * @param array $systems
+     * @param Object $object
+     * @return System
      */
-    protected static function setSystems($systems)
+    public function setObject(Object $object)
     {
-        self::$systems = $systems;
+        if(empty($this->objects[get_class($object)])) {
+            $this->objects[get_class($object)] = array();
+        }
+        $this->objects[get_class($object)][] = $object;
+        return $this;
     }
 
     /**
-     * @return \MongoCollection
+     * @return Object
      */
-    public static function getMessagesCollection()
+    public function getObject($name)
     {
-        return self::$messageCollection;
-    }
-
-    /**
-     * @param \MongoCollection $collection
-     */
-    public static function setMessagesCollection($collection)
-    {
-        self::$messageCollection = $collection;
-    }
-
-    /**
-     * @return \MongoCollection
-     */
-    public static function getQueueCollection()
-    {
-        return self::$queueCollection;
-    }
-
-    /**
-     * @param \MongoCollection $collection
-     */
-    public static function setQueueCollection($collection)
-    {
-        self::$queueCollection = $collection;
-    }
-
-    public static function addObject($object) {
-        return self::getQueueCollection()->insert($object);
-    }
-
-    /**
-     * @param \Exchange\System $system
-     * @return string
-     */
-    public static function getSystem(System $system) {
-        return array_search(get_class($system), self::$availableSystems);
-    }
-
-    /**
-     * @param $messageNo
-     * @param string $system
-     * @return bool
-     */
-    public static function setReceived($messageNo, $system = 'CashBox') {
-        $received = self::getMessagesCollection()->findAndModify(array(
-            'request.Header.MessageNo' => (int)$messageNo,
-            'system' => $system
-        ), array(
-            '$set' => array(
-                'received' => true
-            )
-        ));
-
-        if(!$received) {
+        if(empty($this->objects[$name])) {
             return false;
         }
-
-        foreach ($received['objects'] as $object) {
-            self::getQueueCollection()->remove(
-                array(
-                    '_id' => $object
-                )
-            );
-        }
-
-        return true;
+        return $this->objects[$name];
     }
 
-    public static function getLastMessageNo($system = 'CashBox') {
-        $lastMessage = self::getMessagesCollection()
-            ->find(array('system' => $system))
-            ->sort(array("request.Header.MessageNo" => -1))
-            ->limit(1)
-            ->next();
+    /**
+     * @param mixed $config
+     * @return System
+     */
+    public function setConfig($config)
+    {
+        $this->config = $config;
+        return $this;
+    }
 
-        return empty($lastMessage) ? 1 : $lastMessage['request']['Header']['MessageNo'];
+    public function storeProcessed() {
+        $items = array();
+        foreach ($this->getObjects() as $objects) {
+            /** @var Object $object */
+            foreach($objects as $object) {
+                $object->setProcessed(true);
+                $items[] = $object->getMongoId();
+            }
+        }
+
+        return $this->getCollection()->insert(
+            array(
+                'request' => $this->getRequest(),
+                'objects' => $items,
+                'received' => false,
+                'system' => Service::getSystem($this)
+            )
+        );
+    }
+
+    /**
+     * @param \MongoCollection $collection
+     * @return System
+     */
+    public function setCollection($collection)
+    {
+        $this->collection = $collection;
+        return $this;
+    }
+
+    /**
+     * @return \MongoCollection
+     */
+    public function getCollection()
+    {
+        return $this->collection;
+    }
+
+    public static function getSign($body) {
+        global $sugar_config;
+        $sign = md5($sugar_config['1c_config']['api_key'] . $body . $sugar_config['1c_config']['api_salt']);
+        return $sign;
+    }
+
+    /**
+     * @param mixed $transport
+     * @return System
+     */
+    public function setTransport($transport)
+    {
+        $this->transport = $transport;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getTransport()
+    {
+        return $this->transport;
+    }
+
+    public function sent() {
+        return $this->getTransport()->call('Отправить', array('Данные' => json_encode($this->getRequest())), 'ExchangeSuiteCRM');
     }
 
 }

@@ -1,174 +1,142 @@
 <?php
+
 /**
  * User: M. Krivickiy
  */
+
 namespace Exchange;
 
-use Exchange\Systems\CashBox;
-use Exchange\Object;
+use Exchange\Config;
+use Exchange\System;
 
-class System
+class Service
 {
 
+    protected static $systems = array();
     /** @var  \MongoCollection $collection */
-    protected $collection;
+    protected static $messageCollection;
+    /** @var  \MongoCollection $queueCollection */
+    protected static $queueCollection;
 
-    protected $objects = array();
-
-    protected $config;
-
-    protected $transport;
+    protected static  $availableSystems = array(
+        'CashBox' => 'Exchange\Systems\CashBox',
+        'YourHumanResourceAdvisor' => 'Exchange\Systems\YourHumanResourceAdvisor',
+    );
 
     /**
-     * @return string
+     * @param \SugarBean $bean
+     * @return bool|System
      */
-    public function getRequest() {
-        $request = array(
-            'Header' => array(
-                'MessageNo' => 1,
-                'ReceivedNo' => 1,
-                'Sign' => false,
-            ),
-            'Body' => array()
-        );
-
-        $lastMessage = $this->getCollection()
-            ->find(array('system' => Service::getSystem($this)))
-            ->sort(array("request.Header.MessageNo" => -1))
-            ->limit(1)
-            ->next();
-
-        $request['Header']['MessageNo'] = empty($lastMessage) ? 1 : $lastMessage['request']['Header']['MessageNo'] + 1;
-
-        foreach($this->getObjects() as $key => $objects) {
-            foreach($objects as $object_key => $object) {
-                $request['Body'][] = $object->toRequest();
-            }
+    public static function system($bean) {
+        if(empty(self::$availableSystems[$bean->system_c]) || !class_exists(self::$availableSystems[$bean->system_c])) {
+            return false;
         }
 
-        $request['Header']['Sign'] = self::getSign(json_encode($request['Body']));
+        if(empty(self::$systems[$bean->system_c])) {
+            self::$systems[$bean->system_c] = new self::$availableSystems[$bean->system_c]();
+        }
 
-        return $request;
-    }
-
-    /**
-     * @param array $objects
-     * @return System
-     */
-    public function setObjects($objects)
-    {
-        $this->objects = $objects;
-        return $this;
+        return self::$systems[$bean->system_c];
     }
 
     /**
      * @return array
      */
-    public function getObjects()
+    public static function getSystems()
     {
-        return $this->objects;
-    }
-
-
-    /**
-     * @param Object $object
-     * @return System
-     */
-    public function setObject(Object $object)
-    {
-        if(empty($this->objects[get_class($object)])) {
-            $this->objects[get_class($object)] = array();
-        }
-        $this->objects[get_class($object)][] = $object;
-        return $this;
+        return self::$systems;
     }
 
     /**
-     * @return Object
+     * @param array $systems
      */
-    public function getObject($name)
+    protected static function setSystems($systems)
     {
-        if(empty($this->objects[$name])) {
-            return false;
-        }
-        return $this->objects[$name];
-    }
-
-    /**
-     * @param mixed $config
-     * @return System
-     */
-    public function setConfig($config)
-    {
-        $this->config = $config;
-        return $this;
-    }
-
-    public function storeProcessed() {
-        $items = array();
-        foreach ($this->getObjects() as $objects) {
-            /** @var Object $object */
-            foreach($objects as $object) {
-                $object->setProcessed(true);
-                $items[] = $object->getMongoId();
-            }
-        }
-
-        return $this->getCollection()->insert(
-            array(
-                'request' => $this->getRequest(),
-                'objects' => $items,
-                'received' => false,
-                'system' => Service::getSystem($this)
-            )
-        );
-    }
-
-    /**
-     * @param \MongoCollection $collection
-     * @return System
-     */
-    public function setCollection($collection)
-    {
-        $this->collection = $collection;
-        return $this;
+        self::$systems = $systems;
     }
 
     /**
      * @return \MongoCollection
      */
-    public function getCollection()
+    public static function getMessagesCollection()
     {
-        return $this->collection;
-    }
-
-    public static function getSign($body) {
-        global $sugar_config;
-        $sign = md5($sugar_config['1c_config']['api_key'] . $body . $sugar_config['1c_config']['api_salt']);
-        return $sign;
+        return self::$messageCollection;
     }
 
     /**
-     * @param mixed $transport
-     * @return System
+     * @param \MongoCollection $collection
      */
-    public function setTransport($transport)
+    public static function setMessagesCollection($collection)
     {
-        $this->transport = $transport;
-        return $this;
+        self::$messageCollection = $collection;
     }
 
     /**
-     * @return mixed
+     * @return \MongoCollection
      */
-    public function getTransport()
+    public static function getQueueCollection()
     {
-        return $this->transport;
+        return self::$queueCollection;
     }
 
-    public function sent() {
-        return $this->getTransport()->call('Отправить', array('Данные' => json_encode($this->getRequest(), JSON_UNESCAPED_UNICODE), 'ExchangeSuiteCRM'));
+    /**
+     * @param \MongoCollection $collection
+     */
+    public static function setQueueCollection($collection)
+    {
+        self::$queueCollection = $collection;
     }
 
+    public static function addObject($object) {
+        return self::getQueueCollection()->insert($object);
+    }
+
+    /**
+     * @param \Exchange\System $system
+     * @return string
+     */
+    public static function getSystem(System $system) {
+        return array_search(get_class($system), self::$availableSystems);
+    }
+
+    /**
+     * @param $messageNo
+     * @param string $system
+     * @return bool
+     */
+    public static function setReceived($messageNo, $system = 'CashBox') {
+        $received = self::getMessagesCollection()->findAndModify(array(
+            'request.Header.MessageNo' => (int)$messageNo,
+            'system' => $system
+        ), array(
+            '$set' => array(
+                'received' => true
+            )
+        ));
+
+        if(!$received) {
+            return false;
+        }
+
+        foreach ($received['objects'] as $object) {
+            self::getQueueCollection()->remove(
+                array(
+                    '_id' => $object
+                )
+            );
+        }
+
+        return true;
+    }
+
+    public static function getLastMessageNo($system = 'CashBox') {
+        $lastMessage = self::getMessagesCollection()
+            ->find(array('system' => $system))
+            ->sort(array("request.Header.MessageNo" => -1))
+            ->limit(1)
+            ->next();
+
+        return empty($lastMessage) ? 1 : $lastMessage['request']['Header']['MessageNo'];
+    }
 
 }
