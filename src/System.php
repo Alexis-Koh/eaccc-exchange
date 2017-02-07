@@ -112,7 +112,8 @@ class System
         return $this->getCollection()->insert(
             array(
                 'request' => $this->getRequest(),
-                'received' => false
+                'received' => false,
+                'system' => Service::getSystem($this)
             )
         );
     }
