@@ -12,5 +12,5 @@ class Id extends Field
 {
     protected $custom = false;
     protected $name = 'id';
-    protected $externalName = 'р_ИдентификаторCRM';
+    protected $externalName = 'ИдентификаторCRM';
 }
