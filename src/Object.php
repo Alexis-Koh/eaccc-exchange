@@ -63,8 +63,8 @@ class Object
      */
     public function loadBean(\SugarBean $bean) {
         /** @var Field $field */
-        foreach($this->getFields() as &$field) {
-            $field->setValue($bean->{$field->getName()});
+        foreach($this->getFields() as $key => $field) {
+            $this->fields[$key]->setValue($bean->{$field->getName()});
         }
     }
 
