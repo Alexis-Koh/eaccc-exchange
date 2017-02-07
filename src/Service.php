@@ -77,4 +77,14 @@ class Service
         return array_search(get_class($system), self::$availableSystems);
     }
 
+    public static function setReceived($messageNo) {
+        $received = self::getCollection()->findAndModify(array(
+            'Header.MessageNo' => (int)$messageNo
+        ), array(
+            '$set' => array(
+                'received' => true
+            )
+        ));
+    }
+
 }

@@ -110,7 +110,10 @@ class System
         }
 
         return $this->getCollection()->insert(
-            $this->getRequest()
+            array(
+                'request' => $this->getRequest(),
+                'received' => false
+            )
         );
     }
 
