@@ -146,6 +146,7 @@ class System
 
     public static function getSign($body) {
         global $sugar_config;
+        $body = json_encode(json_decode($body));
         $sign = md5($sugar_config['1c_config']['api_key'] . $body . $sugar_config['1c_config']['api_salt']);
         return $sign;
     }
