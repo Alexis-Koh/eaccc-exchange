@@ -88,13 +88,22 @@ class Service
     }
 
     public static function addObject($object) {
-        return self::getCollection()->insert($object);
+        return self::getQueueCollection()->insert($object);
     }
 
+    /**
+     * @param \Exchange\System $system
+     * @return string
+     */
     public static function getSystem(System $system) {
         return array_search(get_class($system), self::$availableSystems);
     }
 
+    /**
+     * @param $messageNo
+     * @param string $system
+     * @return bool
+     */
     public static function setReceived($messageNo, $system = 'CashBox') {
         $received = self::getMessagesCollection()->findAndModify(array(
             'request.Header.MessageNo' => (int)$messageNo,
@@ -110,12 +119,14 @@ class Service
         }
 
         foreach ($received['objects'] as $object) {
-            $receivedObject = self::getQueueCollection()->remove(
+            self::getQueueCollection()->remove(
                 array(
                     '_id' => $object
                 )
             );
         }
+
+        return true;
     }
 
 }
