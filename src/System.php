@@ -36,7 +36,9 @@ class System
             ->next();
 
         $request['Header']->MessageNo = empty($lastMessage) ? 1 : $lastMessage['request']['Header']['MessageNo'] + 1;
-        $request['Header']->ReceivedNo = $this->getLastReceivedNo();
+        if(!empty($this->getLastReceivedNo())) {
+            $request['Header']->ReceivedNo = $this->getLastReceivedNo();
+        }
 
         if(count($this->getObjects()) > 0) {
             $request['Body'] = array();
