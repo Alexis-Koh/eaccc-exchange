@@ -12,5 +12,5 @@ class Email extends Field
 {
     protected $custom = false;
     protected $name = 'email1';
-    protected $externalName = 'E-mail';
+    protected $externalName = 'ЭлектроннаяПочта';
 }

@@ -12,5 +12,5 @@ class Phone extends Field
 {
     protected $custom = false;
     protected $name = 'phone_office_mask_c';
-    protected $externalName = 'Телефон';
+    protected $externalName = 'НомерТелефона';
 }
