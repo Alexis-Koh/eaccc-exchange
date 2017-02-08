@@ -7,6 +7,9 @@
 namespace Exchange\Systems\CashBox;
 
 use Exchange\Object;
+use Exchange\Systems\CashBox\Accounts\Deleted;
+use Exchange\Systems\CashBox\Accounts\Id;
+use Exchange\Systems\CashBox\Accounts\Name;
 use Exchange\Systems\CashBox\Accounts\Email;
 use Exchange\Systems\CashBox\Accounts\Inn;
 use Exchange\Systems\CashBox\Accounts\Phone;
