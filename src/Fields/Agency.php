@@ -11,6 +11,6 @@ use Exchange\Field;
 class Agency extends Field
 {
     protected $custom = false;
-    protected $name = 'agency_c';
+    protected $name = 'ea1_agency_id_c';
     protected $externalName = 'Подразделение';
 }
