@@ -36,7 +36,7 @@ class System
             ->next();
 
         $request['Header']->MessageNo = empty($lastMessage) ? 1 : $lastMessage['request']['Header']['MessageNo'] + 1;
-        if(!empty($this->getLastReceivedNo())) {
+        if(!empty($this->lastReceivedNo)) {
             $request['Header']->ReceivedNo = $this->getLastReceivedNo();
         }
 
