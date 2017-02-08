@@ -105,13 +105,21 @@ class Service
      * @return bool
      */
     public static function setReceived($messageNo, $system = 'CashBox') {
-        $received = self::getMessagesCollection()->findAndModify(array(
-            'request.Header.MessageNo' => (int)$messageNo,
-            'system' => $system
+        $result = self::getMessagesCollection()->update(array(
+            'request.Header.MessageNo' => array( '$lte' => (int)$messageNo),
+            'system' => $system,
+            'received' => false
         ), array(
             '$set' => array(
                 'received' => true
             )
+        ), array(
+            'multiple' => true
+        ));
+
+        $received = self::getMessagesCollection()->findOne(array(
+            'request.Header.MessageNo' => (int)$messageNo,
+            'system' => $system
         ));
 
         if(!$received) {
