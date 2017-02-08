@@ -6,6 +6,6 @@
 
 namespace Exchange\Systems\CashBox\Accounts;
 
-use Exchange\Fields\Name as BaseClass;
+use Exchange\Fields\Phone as BaseClass;
 
 class Phone extends BaseClass {}
