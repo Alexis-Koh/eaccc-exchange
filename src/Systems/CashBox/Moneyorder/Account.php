@@ -4,9 +4,9 @@
  * User: M. Krivickiy
  */
 
-namespace Exchange\Systems\CashBox\Projects;
+namespace Exchange\Systems\CashBox\Moneyorder;
 
 //use Exchange\Fields\Name as BaseClass;
 
 //class Name extends BaseClass {
-class Accoun {}
+class Account {}
