@@ -4,8 +4,13 @@
  * User: M. Krivickiy
  */
 
-namespace Exchange\Systems\CashBox\Moneyorder;
+namespace Exchange\Systems\CashBox\Projects;
 
 use Exchange\Fields\Name as BaseClass;
 
-class Name extends BaseClass {}
+class Name extends BaseClass {
+
+
+
+
+}
