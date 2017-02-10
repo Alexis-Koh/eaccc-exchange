@@ -6,7 +6,7 @@
 
 namespace Exchange\Systems\CashBox\Moneyorder;
 
-//use Exchange\Fields\DescriptionAnalytic as BaseClass;
+use Exchange\Fields\DescriptionAnalytic as BaseClass;
 
-//class DescriptionAnalytic extends BaseClass {}
-class DescriptionAnalytic {}
+class DescriptionAnalytic extends BaseClass {}
+//class DescriptionAnalytic {}
