@@ -8,6 +8,7 @@ namespace Exchange\Systems\CashBox;
 
 use Exchange\Object;
 
+
 //use Exchange\Systems\CashBox\Accounts\Id;
 //use Exchange\Systems\CashBox\Accounts\Name;
 
@@ -97,5 +98,6 @@ class Moneyorder extends Object
             $this->fields[$key]->setValue($bean->{$field->getName()});
         }
     }
+
 
 }
