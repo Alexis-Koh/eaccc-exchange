@@ -11,7 +11,7 @@ use Exchange\Object;
 //use Exchange\Systems\CashBox\Accounts\Id;
 //use Exchange\Systems\CashBox\Accounts\Name;
 
-
+require_once('/var/www/sugar/custom/include/vendor/eaccc/exchange/src/Systems/CashBox/Moneyorder/DescriptionAnalytic.php');
 
 
 use Exchange\Systems\CashBox\Moneyorder\Name;
